@@ -1,6 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const VoiceManager = {
+        _voices: null,
+        _promise: null,
+        getVoices() {
+            if (this._voices) {
+                return Promise.resolve(this._voices);
+            }
+            if (this._promise) {
+                return this._promise;
+            }
+            this._promise = new Promise((resolve) => {
+                const getAndResolve = () => {
+                    const voiceList = speechSynthesis.getVoices();
+                    if (voiceList.length > 0) {
+                        this._voices = voiceList;
+                        resolve(this._voices);
+                    }
+                };
+                if ('onvoiceschanged' in speechSynthesis) {
+                    speechSynthesis.onvoiceschanged = getAndResolve;
+                }
+                getAndResolve(); // Initial attempt
+            });
+            return this._promise;
+        }
+    };
+
     const App = {
-        VERSION: '1.0.1',
+        VERSION: '1.0.2',
         state: {
             words: [],
             settings: {},
@@ -13,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 correctStreak: 0,
                 lastAnswerCorrect: null,
             },
-            voices: [],
             editingWordId: null,
         },
 
@@ -117,10 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.getElementById('reset-progress-btn').addEventListener('click', () => this.resetProgress());
 
-            // Speech Synthesis
-            if ('speechSynthesis' in window) {
-                speechSynthesis.onvoiceschanged = () => this.populateVoices();
-            }
+            // The VoiceManager now handles the onvoiceschanged event.
         },
 
         applySettings() {
