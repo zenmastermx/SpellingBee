@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const App = {
-        VERSION: '1.0.4',
+        VERSION: '1.0.5',
         state: {
             words: [],
             settings: {},
@@ -140,6 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Modals
             document.querySelectorAll('.modal .close-btn').forEach(btn => btn.addEventListener('click', () => this.closeModals()));
+            document.getElementById('spelling-feedback-close-btn').addEventListener('click', () => {
+                console.log('Close button clicked');
+                document.getElementById('spelling-feedback-modal').style.display = 'none';
+            });
+            document.getElementById('repeat-spelling-feedback-btn').addEventListener('click', () => {
+                console.log('Repeat button clicked');
+                this.speakWordLetterByLetter(true);
+            });
             document.getElementById('save-word-btn').addEventListener('click', () => this.saveWord());
             document.getElementById('save-import-btn').addEventListener('click', () => this.importWords());
             document.getElementById('import-file-input').addEventListener('change', e => this.importFromFile(e));
@@ -385,6 +393,62 @@ document.addEventListener('DOMContentLoaded', () => {
             speechSynthesis.speak(utterance);
         },
 
+        async speakWordLetterByLetter(isModal = false) {
+            if (!('speechSynthesis' in window)) return;
+            const word = this.state.practiceSession.currentWord;
+            if (!word) return;
+
+            if (isModal) {
+                document.getElementById('repeat-spelling-feedback-btn').style.display = 'none';
+                document.getElementById('spelling-feedback-close-btn').style.display = 'none';
+            }
+
+            // Clear previous highlights
+            const letterSpans = document.querySelectorAll(isModal ? '#spelling-feedback-word span' : '#correct-spelling-text span');
+            letterSpans.forEach(span => span.classList.remove('highlight'));
+
+            speechSynthesis.cancel();
+
+            const letters = word.text.split('');
+            const voices = await VoiceManager.getVoices();
+            const selectedVoiceName = this.state.settings.voice;
+            let selectedVoice = null;
+
+            if (selectedVoiceName) {
+                selectedVoice = voices.find(v => v.name === selectedVoiceName);
+            } else {
+                selectedVoice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
+            }
+
+            for (let i = 0; i < letters.length; i++) {
+                const letter = letters[i];
+                const letterSpan = document.getElementById(isModal ? `feedback-letter-${i}` : `letter-${i}`);
+                if (letterSpan) {
+                    letterSpan.classList.add('highlight');
+                }
+
+                const utterance = new SpeechSynthesisUtterance(letter);
+                utterance.rate = this.state.settings.speechRate;
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                    utterance.lang = selectedVoice.lang;
+                }
+                
+                utterance.onerror = (event) => {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                };
+                speechSynthesis.speak(utterance);
+                
+                // Pause between letters
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
+
+            if (isModal) {
+                document.getElementById('repeat-spelling-feedback-btn').style.display = 'inline-block';
+                document.getElementById('spelling-feedback-close-btn').style.display = 'block';
+            }
+        },
+
         async checkSpelling() {
             const userInput = document.getElementById('spell-input').value.trim().toLowerCase();
             const correctSpelling = this.state.practiceSession.currentWord.text.toLowerCase();
@@ -393,10 +457,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const spellInput = document.getElementById('spell-input');
 
             document.getElementById('feedback-text').textContent = isCorrect ? 'Correct!' : 'Incorrect!';
-            document.getElementById('correct-spelling-text').textContent = correctSpelling;
             this.renderDiff(userInput, correctSpelling);
             document.getElementById('feedback-container').style.display = 'block';
             document.getElementById('spell-input').disabled = true;
+
+            // Show modal with correct spelling
+            const modal = document.getElementById('spelling-feedback-modal');
+            const wordEl = document.getElementById('spelling-feedback-word');
+            const closeBtn = document.getElementById('spelling-feedback-close-btn');
+            const repeatBtn = document.getElementById('repeat-spelling-feedback-btn');
+
+            wordEl.innerHTML = '';
+            correctSpelling.split('').forEach((letter, index) => {
+                const span = document.createElement('span');
+                span.textContent = letter;
+                span.id = `feedback-letter-${index}`;
+                wordEl.appendChild(span);
+            });
+
+            closeBtn.style.display = 'none';
+            repeatBtn.style.display = 'none';
+            modal.style.display = 'flex';
+
+            await this.speakWordLetterByLetter(true);
 
             if (isCorrect) {
                 // Visual feedback for correct answer

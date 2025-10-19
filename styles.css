@@ -314,8 +314,45 @@ body {
 }
 
 #feedback-container {
-    text-align: center;
     margin-top: 1rem;
+}
+
+.spelled-word {
+    font-size: clamp(1.5rem, 10vw, 4rem);
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 2rem;
+    word-break: break-word; /* fallback */
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+}
+
+@media (min-width: 768px) {
+    .spelled-word {
+        font-size: 4rem;
+    }
+}
+
+#spelling-feedback-modal .modal-content {
+    text-align: center;
+}
+
+@keyframes letter-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+#spelling-feedback-word span {
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+#spelling-feedback-word span.highlight {
+    color: var(--accent-color);
+    text-shadow: 0 0 10px var(--accent-glow);
+    animation: letter-pulse 0.4s ease-in-out;
 }
 
 .rating-buttons {
@@ -407,9 +444,15 @@ body {
     border: 1px solid var(--card-border);
     padding: 2rem;
     border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
+    width: auto;
+    max-width: 90vw;
     box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 1rem;
+    }
 }
 
 .modal-content h3 {

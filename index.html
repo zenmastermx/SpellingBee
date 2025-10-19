@@ -65,7 +65,6 @@
                 </div>
                 <div id="feedback-container" style="display: none;">
                     <h2 id="feedback-text"></h2>
-                    <p>Correct spelling: <strong id="correct-spelling-text"></strong></p>
                     <div id="diff-container"></div>
                     <div id="translation-container" class="notranslate" style="display: none; margin-top: 1rem;">
                         <p>Spanish Translation: <strong id="translation-text"></strong></p>
@@ -164,6 +163,28 @@
             <button id="save-import-btn" class="btn">Import</button>
             <p>Or upload a JSON file:</p>
             <input type="file" id="import-file-input" accept=".json">
+        </div>
+    </div>
+
+    <!-- Spelling Feedback Modal -->
+    <div id="spelling-feedback-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="spelling-feedback-close-btn" class="close-btn" style="display: none;">&times;</span>
+            <div id="spelling-feedback-word" class="spelled-word"></div>
+            <button id="repeat-spelling-feedback-btn" class="btn-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Spelling Feedback Modal -->
+    <div id="spelling-feedback-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="spelling-feedback-close-btn" class="close-btn" style="display: none;">&times;</span>
+            <div id="spelling-feedback-word" class="spelled-word"></div>
+            <button id="repeat-spelling-feedback-btn" class="btn-icon" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
         </div>
     </div>
     
