@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const App = {
-        VERSION: '1.0.0',
+        VERSION: '1.0.1',
         state: {
             words: [],
             settings: {},
@@ -230,17 +230,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const word = this.state.practiceSession.currentWord;
             if (!word) return;
 
-            // Cancel any previous speech
             speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(word.text);
             utterance.rate = this.state.settings.speechRate;
-            if (this.state.settings.voice) {
-                const voice = this.state.voices.find(v => v.name === this.state.settings.voice);
-                if (voice) utterance.voice = voice;
+
+            const selectedVoice = this.state.settings.voice
+                ? this.state.voices.find(v => v.name === this.state.settings.voice)
+                : null;
+
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                utterance.lang = selectedVoice.lang;
+            } else {
+                utterance.lang = 'en-US';
             }
             
-            console.log('Speaking:', utterance);
+            utterance.onerror = (event) => {
+                console.error('SpeechSynthesisUtterance.onerror', event);
+            };
+
             speechSynthesis.speak(utterance);
         },
 
