@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const App = {
-        VERSION: '1.0.2',
+        VERSION: '1.0.4',
         state: {
             words: [],
             settings: {},
@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         nextWord() {
+            document.getElementById('translation-container').style.display = 'none';
             let nextWord = null;
             // Prioritize words in the relearning queue
             if (this.state.practiceSession.relearningQueue.length > 0) {
@@ -279,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             speechSynthesis.speak(utterance);
         },
 
-        checkSpelling() {
+        async checkSpelling() {
             const userInput = document.getElementById('spell-input').value.trim().toLowerCase();
             const correctSpelling = this.state.practiceSession.currentWord.text.toLowerCase();
             const isCorrect = userInput === correctSpelling;
@@ -301,6 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 this.state.practiceSession.correctStreak = 0;
+            }
+
+            const translation = await this.getTranslation(correctSpelling, 'es');
+            if (translation) {
+                document.getElementById('translation-text').textContent = translation;
+                document.getElementById('translation-container').style.display = 'block';
             }
         },
 
@@ -573,6 +580,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (this.state.settings.voice) {
                 voiceSelect.value = this.state.settings.voice;
+            }
+        },
+
+        async getTranslation(text, targetLang) {
+            // This uses an unofficial, rate-limited, and potentially unstable API.
+            // Do not use in a production environment where reliability is critical.
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data[0][0][0];
+            } catch (error) {
+                console.error("Translation error:", error);
+                return null;
             }
         },
 
