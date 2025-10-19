@@ -513,6 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateVoices() {
             this.state.voices = speechSynthesis.getVoices();
+            if (this.state.voices.length === 0) return;
+
             const voiceSelect = document.getElementById('voice-select');
             voiceSelect.innerHTML = '';
             this.state.voices.forEach(voice => {
@@ -521,6 +523,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.value = voice.name;
                 voiceSelect.appendChild(option);
             });
+
+            // If no voice is saved in settings, try to find a good default
+            if (!this.state.settings.voice) {
+                let defaultVoice = this.state.voices.find(v => v.lang === 'en-US');
+                if (!defaultVoice) {
+                    defaultVoice = this.state.voices.find(v => v.lang.startsWith('en'));
+                }
+                if (defaultVoice) {
+                    this.state.settings.voice = defaultVoice.name;
+                    this.saveSettings();
+                }
+            }
+
             if (this.state.settings.voice) {
                 voiceSelect.value = this.state.settings.voice;
             }
