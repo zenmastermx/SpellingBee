@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
 
-        speakWord() {
+        async speakWord() {
             if (!('speechSynthesis' in window)) return;
             const word = this.state.practiceSession.currentWord;
             if (!word) return;
@@ -258,14 +258,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const utterance = new SpeechSynthesisUtterance(word.text);
             utterance.rate = this.state.settings.speechRate;
 
-            const selectedVoice = this.state.settings.voice
-                ? this.state.voices.find(v => v.name === this.state.settings.voice)
-                : null;
+            const voices = await VoiceManager.getVoices();
+            const selectedVoiceName = this.state.settings.voice;
 
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-                utterance.lang = selectedVoice.lang;
+            if (selectedVoiceName) {
+                const selectedVoice = voices.find(v => v.name === selectedVoiceName);
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                    utterance.lang = selectedVoice.lang;
+                }
             } else {
+                // Fallback if no voice is selected
                 utterance.lang = 'en-US';
             }
             
@@ -545,24 +548,22 @@ document.addEventListener('DOMContentLoaded', () => {
             this.saveSettings();
         },
 
-        populateVoices() {
-            this.state.voices = speechSynthesis.getVoices();
-            if (this.state.voices.length === 0) return;
-
+        async populateVoices() {
+            const voices = await VoiceManager.getVoices();
             const voiceSelect = document.getElementById('voice-select');
             voiceSelect.innerHTML = '';
-            this.state.voices.forEach(voice => {
+            voices.forEach(voice => {
                 const option = document.createElement('option');
                 option.textContent = `${voice.name} (${voice.lang})`;
                 option.value = voice.name;
                 voiceSelect.appendChild(option);
             });
 
-            // If no voice is saved in settings, try to find a good default
+            // If no voice is saved in settings, try to find a good default English voice
             if (!this.state.settings.voice) {
-                let defaultVoice = this.state.voices.find(v => v.lang === 'en-US');
+                let defaultVoice = voices.find(v => v.lang === 'en-US');
                 if (!defaultVoice) {
-                    defaultVoice = this.state.voices.find(v => v.lang.startsWith('en'));
+                    defaultVoice = voices.find(v => v.lang.startsWith('en'));
                 }
                 if (defaultVoice) {
                     this.state.settings.voice = defaultVoice.name;
