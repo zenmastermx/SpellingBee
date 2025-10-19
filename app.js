@@ -51,11 +51,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
             this.loadData();
             this.setupEventListeners();
+            this.setupUIEnhancements();
             this.populateVoices();
             this.applySettings();
-            this.render();
             Gamification.init();
+            this.render();
             this.updateDashboard();
+        },
+
+        setupUIEnhancements() {
+            // Listen for streak updates
+            window.addEventListener('streakUpdate', (e) => {
+                const streakDisplay = document.getElementById('streak-display');
+                if (streakDisplay) {
+                    UIUtils.triggerAnimation(streakDisplay, 'streak-pop', 600);
+                }
+            });
+
+            // Add input field typing animation
+            const spellInput = document.getElementById('spell-input');
+            if (spellInput) {
+                spellInput.addEventListener('input', (e) => {
+                    e.target.classList.add('typing');
+                    clearTimeout(e.target._typingTimer);
+                    e.target._typingTimer = setTimeout(() => {
+                        e.target.classList.remove('typing');
+                    }, 150);
+                });
+            }
         },
 
         loadData() {
@@ -65,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 voice: null,
                 dailyGoal: 20,
                 sound: true,
-                theme: 'light',
+                theme: 'dark',
             });
         },
 
@@ -139,6 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.getElementById('sound-toggle').addEventListener('change', e => {
                 this.state.settings.sound = e.target.checked;
+                if (typeof SoundManager !== 'undefined') {
+                    SoundManager.setEnabled(e.target.checked);
+                }
                 this.saveSettings();
             });
             document.getElementById('reset-progress-btn').addEventListener('click', () => this.resetProgress());
@@ -157,6 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('daily-goal-input').value = this.state.settings.dailyGoal;
             // Sound
             document.getElementById('sound-toggle').checked = this.state.settings.sound;
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.setEnabled(this.state.settings.sound);
+            }
         },
 
         render() {
@@ -167,26 +196,84 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         navigateTo(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+            const currentView = document.querySelector('.view.active');
+            const nextView = document.getElementById(viewId);
+
+            if (currentView && currentView !== nextView) {
+                // Slide out current view
+                currentView.classList.add('view-exit');
+                setTimeout(() => {
+                    currentView.classList.remove('active', 'view-exit');
+                }, 300);
+            }
+
+            // Slide in next view
+            if (nextView) {
+                nextView.classList.add('view-enter');
+                setTimeout(() => {
+                    nextView.classList.add('active');
+                    nextView.classList.remove('view-enter');
+                }, 10);
+            }
+
+            // Update nav buttons
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.nav-btn[data-view="${viewId}"]`).classList.add('active');
+            const navBtn = document.querySelector(`.nav-btn[data-view="${viewId}"]`);
+            if (navBtn) {
+                navBtn.classList.add('active');
+            }
         },
 
         updateDashboard() {
-            document.getElementById('level-display').textContent = `Level ${Gamification.level}`;
+            // Update level display
+            const levelDisplay = document.getElementById('level-display');
+            const newLevelText = `Level ${Gamification.level}`;
+            if (levelDisplay.textContent !== newLevelText) {
+                levelDisplay.textContent = newLevelText;
+            }
+
+            // Update points display
             document.getElementById('points-display').textContent = `${Gamification.points} Points`;
+
+            // Update XP bar
             const xpForLevel = (Gamification.level - 1) * Gamification.LEVEL_XP;
             const currentXp = Gamification.points - xpForLevel;
             document.getElementById('xp-bar').value = currentXp;
             document.getElementById('xp-bar').max = Gamification.LEVEL_XP;
-            document.getElementById('streak-display').textContent = `🔥 ${Gamification.streak.current}`;
-            
-            const mastered = this.state.words.filter(w => w.interval > 21).length;
-            document.getElementById('mastered-words-count').textContent = mastered;
-            document.getElementById('today-accuracy').textContent = `${Gamification.getTodayAccuracy()}%`;
-            document.getElementById('longest-streak-count').textContent = `${Gamification.streak.longest} days`;
 
+            // Update streak display
+            document.getElementById('streak-display').textContent = `🔥 ${Gamification.streak.current}`;
+
+            // Animated stat updates
+            const mastered = this.state.words.filter(w => w.interval > 21).length;
+            if (typeof UIUtils !== 'undefined') {
+                UIUtils.updateStatWithAnimation('mastered-words-count', mastered);
+
+                // Update longest streak with animation
+                const longestStreakEl = document.getElementById('longest-streak-count');
+                const oldStreak = parseInt(longestStreakEl.textContent) || 0;
+                const newStreak = Gamification.streak.longest;
+
+                if (oldStreak !== newStreak) {
+                    const statCard = longestStreakEl.closest('.stat-card');
+                    if (statCard && newStreak > oldStreak) {
+                        UIUtils.triggerAnimation(statCard, 'stat-increase', 800);
+                    }
+                    UIUtils.animateNumber(longestStreakEl, oldStreak, newStreak);
+                    // Add " days" after animation completes
+                    setTimeout(() => {
+                        longestStreakEl.textContent = `${newStreak} days`;
+                    }, 820);
+                }
+            } else {
+                document.getElementById('mastered-words-count').textContent = mastered;
+                document.getElementById('longest-streak-count').textContent = `${Gamification.streak.longest} days`;
+            }
+
+            // Update today's accuracy
+            document.getElementById('today-accuracy').textContent = `${Gamification.getTodayAccuracy()}%`;
+
+            // Update daily goal
             const dailyGoal = this.state.settings.dailyGoal;
             const completedToday = 0; // This needs to be calculated from word history
             document.getElementById('daily-goal-count').textContent = dailyGoal;
@@ -196,27 +283,45 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         startPractice() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const dueWords = this.state.words
-                .filter(word => new Date(word.nextReview) <= today)
-                .sort((a, b) => a.repetitions - b.repetitions || a.easeFactor - b.easeFactor);
-
-            if (dueWords.length === 0) {
-                alert("No words due for review today!");
-                return;
+            const btn = document.getElementById('start-practice-btn');
+            if (btn) {
+                btn.classList.add('loading');
+                btn.disabled = true;
             }
 
-            this.state.practiceSession.masterQueue = dueWords;
-            this.state.practiceSession.relearningQueue = [];
-            this.state.practiceSession.correctStreak = 0;
+            // Add slight delay for loading animation effect
+            setTimeout(() => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-            const dailyGoal = this.state.settings.dailyGoal || 20;
-            this.state.practiceSession.activeQueue = this.state.practiceSession.masterQueue.splice(0, dailyGoal);
-            
-            this.nextWord();
-            this.navigateTo('practice-view');
+                const dueWords = this.state.words
+                    .filter(word => new Date(word.nextReview) <= today)
+                    .sort((a, b) => a.repetitions - b.repetitions || a.easeFactor - b.easeFactor);
+
+                if (dueWords.length === 0) {
+                    alert("No words due for review today!");
+                    if (btn) {
+                        btn.classList.remove('loading');
+                        btn.disabled = false;
+                    }
+                    return;
+                }
+
+                this.state.practiceSession.masterQueue = dueWords;
+                this.state.practiceSession.relearningQueue = [];
+                this.state.practiceSession.correctStreak = 0;
+
+                const dailyGoal = this.state.settings.dailyGoal || 20;
+                this.state.practiceSession.activeQueue = this.state.practiceSession.masterQueue.splice(0, dailyGoal);
+
+                this.nextWord();
+                this.navigateTo('practice-view');
+
+                if (btn) {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                }
+            }, 300);
         },
 
         nextWord() {
@@ -285,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const correctSpelling = this.state.practiceSession.currentWord.text.toLowerCase();
             const isCorrect = userInput === correctSpelling;
             this.state.practiceSession.lastAnswerCorrect = isCorrect;
+            const spellInput = document.getElementById('spell-input');
 
             document.getElementById('feedback-text').textContent = isCorrect ? 'Correct!' : 'Incorrect!';
             document.getElementById('correct-spelling-text').textContent = correctSpelling;
@@ -293,14 +399,38 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('spell-input').disabled = true;
 
             if (isCorrect) {
-                confetti.create(window.innerWidth / 2, window.innerHeight / 2);
+                // Visual feedback for correct answer
+                spellInput.classList.add('correct-flash');
+                setTimeout(() => spellInput.classList.remove('correct-flash'), 600);
+
+                // Enhanced confetti based on streak
+                const streak = this.state.practiceSession.correctStreak + 1;
+                const intensity = Math.min(100 + (streak * 10), 300);
+                confetti.create(window.innerWidth / 2, window.innerHeight / 2, intensity);
+
+                // Play success sound
+                if (this.state.settings.sound && typeof SoundManager !== 'undefined') {
+                    SoundManager.playSuccess();
+                }
+
                 this.state.practiceSession.correctStreak++;
+
+                // Check for perfect speller achievement
                 if (this.state.practiceSession.correctStreak >= 10) {
                     if(Gamification.unlockAchievement('PERFECT_SPELLER')) {
-                        alert('Achievement Unlocked: Perfect Speller!');
+                        ToastManager.show('Achievement Unlocked!', 'Perfect Speller - 10 correct in a row!', '🏆');
                     }
                 }
             } else {
+                // Visual feedback for incorrect answer
+                spellInput.classList.add('shake-error');
+                setTimeout(() => spellInput.classList.remove('shake-error'), 400);
+
+                // Play error sound
+                if (this.state.settings.sound && typeof SoundManager !== 'undefined') {
+                    SoundManager.playError();
+                }
+
                 this.state.practiceSession.correctStreak = 0;
             }
 
@@ -315,7 +445,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const word = this.state.practiceSession.currentWord;
             const wasSpelledCorrectly = this.state.practiceSession.lastAnswerCorrect;
 
+            // Calculate XP before processing
+            const oldPoints = Gamification.points;
             Gamification.processAnswer(wasSpelledCorrectly, quality, Date.now() - this.state.practiceSession.startTime, word);
+            const earnedXP = Gamification.points - oldPoints;
+
+            // Show floating XP if points were earned
+            if (earnedXP > 0 && typeof UIUtils !== 'undefined') {
+                const xpBar = document.getElementById('xp-bar');
+                if (xpBar) {
+                    const rect = xpBar.getBoundingClientRect();
+                    UIUtils.showFloatingXP(rect.left + rect.width / 2, rect.top - 10, earnedXP);
+                }
+
+                // Animate XP bar
+                xpBar.classList.add('xp-gaining');
+                setTimeout(() => xpBar.classList.remove('xp-gaining'), 600);
+            }
 
             // If the user spelled it wrong, we force a low quality score for the SM-2 algorithm.
             const sm2Quality = wasSpelledCorrectly ? quality : 0;
@@ -335,7 +481,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.state.practiceSession.activeQueue.push(this.state.practiceSession.masterQueue.shift());
                 }
             }
-            
+
+            // Update dashboard with animations
+            this.updateDashboard();
+
             this.nextWord();
         },
 
@@ -364,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.createElement('div');
                 item.className = `achievement-badge ${achievement.unlocked ? 'unlocked' : ''}`;
                 item.innerHTML = `
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">${achievement.icon || '🏆'}</div>
                     <h4>${achievement.name}</h4>
                     <p>${achievement.description}</p>
                 `;
@@ -383,12 +533,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 day.setDate(thirtyDaysAgo.getDate() + i);
                 const dayString = day.toISOString().split('T')[0];
                 const dayData = Storage.get(`gamification_stats_${dayString}`);
-                
+
                 const cell = document.createElement('div');
                 cell.className = 'heatmap-day';
+
+                // Calculate intensity and apply colors
                 if (dayData && (dayData.correct > 0 || dayData.incorrect > 0)) {
-                    cell.style.backgroundColor = 'var(--primary-color)';
+                    const total = dayData.correct + dayData.incorrect;
+                    if (total === 0) {
+                        // No activity
+                    } else if (total <= 5) {
+                        cell.style.backgroundColor = 'rgba(142, 68, 173, 0.3)';
+                    } else if (total <= 15) {
+                        cell.style.backgroundColor = 'rgba(142, 68, 173, 0.6)';
+                    } else {
+                        cell.style.backgroundColor = 'var(--primary-color)';
+                        cell.style.boxShadow = '0 0 10px rgba(142, 68, 173, 0.5)';
+                    }
+
+                    // Add tooltip on hover
+                    cell.addEventListener('mouseenter', (e) => {
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'heatmap-tooltip';
+                        tooltip.textContent = `${dayData.correct} correct, ${dayData.incorrect} wrong`;
+                        tooltip.style.left = `${e.pageX}px`;
+                        tooltip.style.top = `${e.pageY - 40}px`;
+                        document.body.appendChild(tooltip);
+                        cell._tooltip = tooltip;
+                    });
+
+                    cell.addEventListener('mouseleave', () => {
+                        if (cell._tooltip) {
+                            cell._tooltip.remove();
+                            cell._tooltip = null;
+                        }
+                    });
+                } else {
+                    // No activity tooltip
+                    cell.addEventListener('mouseenter', (e) => {
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'heatmap-tooltip';
+                        tooltip.textContent = 'No activity';
+                        tooltip.style.left = `${e.pageX}px`;
+                        tooltip.style.top = `${e.pageY - 40}px`;
+                        document.body.appendChild(tooltip);
+                        cell._tooltip = tooltip;
+                    });
+
+                    cell.addEventListener('mouseleave', () => {
+                        if (cell._tooltip) {
+                            cell._tooltip.remove();
+                            cell._tooltip = null;
+                        }
+                    });
                 }
+
                 container.appendChild(cell);
             }
         },
@@ -446,10 +645,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     const newWord = SM2.createWord(wordText);
                     this.state.words.push(newWord);
                     if(Gamification.unlockAchievement('WORD_SMITH')) {
-                        alert('Achievement Unlocked: Word Smith!');
+                        if (typeof ToastManager !== 'undefined') {
+                            ToastManager.show('Achievement Unlocked!', 'Word Smith - Added your first custom word!', '🏆');
+                        }
                     }
                 } else {
-                    alert('Word already exists!');
+                    if (typeof ToastManager !== 'undefined') {
+                        ToastManager.show('Oops!', 'This word already exists in your list.', '⚠️');
+                    } else {
+                        alert('Word already exists!');
+                    }
+                    return;
                 }
             }
             this.saveWords();

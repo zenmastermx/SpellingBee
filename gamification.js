@@ -10,12 +10,12 @@ const Gamification = {
     LEVEL_XP: 500, // XP needed to level up
 
     ACHIEVEMENTS: {
-        PERFECT_SPELLER: { name: "Perfect Speller", description: "Get 10 correct answers in a row", unlocked: false },
-        WEEK_WARRIOR: { name: "Week Warrior", description: "Maintain a 7-day study streak", unlocked: false },
-        SPEED_DEMON: { name: "Speed Demon", description: "Answer a word correctly in under 5 seconds", unlocked: false },
-        COMEBACK_KID: { name: "Comeback Kid", description: "Get a word right after getting it wrong", unlocked: false },
-        WORD_SMITH: { name: "Word Smith", description: "Add your first custom word", unlocked: false },
-        MASTER_MIND: { name: "Master Mind", description: "Master your first word (interval > 21 days)", unlocked: false },
+        PERFECT_SPELLER: { name: "Perfect Speller", description: "Get 10 correct answers in a row", icon: "🎯", unlocked: false },
+        WEEK_WARRIOR: { name: "Week Warrior", description: "Maintain a 7-day study streak", icon: "⚔️", unlocked: false },
+        SPEED_DEMON: { name: "Speed Demon", description: "Answer a word correctly in under 5 seconds", icon: "⚡", unlocked: false },
+        COMEBACK_KID: { name: "Comeback Kid", description: "Get a word right after getting it wrong", icon: "💪", unlocked: false },
+        WORD_SMITH: { name: "Word Smith", description: "Add your first custom word", icon: "📝", unlocked: false },
+        MASTER_MIND: { name: "Master Mind", description: "Master your first word (interval > 21 days)", icon: "🧠", unlocked: false },
     },
 
     init() {
@@ -39,9 +39,58 @@ const Gamification = {
         const xpForCurrentLevel = this.points - ((this.level - 1) * this.LEVEL_XP);
         if (xpForCurrentLevel >= this.LEVEL_XP) {
             this.level++;
-            // Add level up fanfare
+            this.celebrateLevelUp();
         }
         this.save();
+    },
+
+    celebrateLevelUp() {
+        // Confetti explosion
+        if (typeof confetti !== 'undefined') {
+            confetti.levelUpExplosion();
+        }
+
+        // Screen shake effect
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) {
+            appContainer.classList.add('screen-shake');
+            setTimeout(() => appContainer.classList.remove('screen-shake'), 500);
+        }
+
+        // Level display pulse
+        const levelDisplay = document.getElementById('level-display');
+        if (levelDisplay) {
+            levelDisplay.classList.add('level-pulse');
+            setTimeout(() => levelDisplay.classList.remove('level-pulse'), 600);
+        }
+
+        // Show level-up modal
+        this.showLevelUpModal();
+
+        // Play sound
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.playLevelUp();
+        }
+    },
+
+    showLevelUpModal() {
+        const modal = document.createElement('div');
+        modal.className = 'level-up-modal';
+        modal.innerHTML = `
+            <div class="level-up-content">
+                <h2>🎉 LEVEL UP! 🎉</h2>
+                <p>You're now Level ${this.level}!</p>
+                <button class="btn btn-primary" onclick="this.closest('.level-up-modal').remove()">Awesome!</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Auto-remove after 4 seconds if user doesn't click
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 4000);
     },
 
     processAnswer(correct, quality, timeTaken, word) {
@@ -86,7 +135,9 @@ const Gamification = {
         if (lastDate === today) return; // Already studied today
 
         const yesterday = this.getYesterdayDateString();
-        if (lastDate === yesterday) {
+        const wasIncremented = lastDate === yesterday;
+
+        if (wasIncremented) {
             this.streak.current++;
         } else {
             this.streak.current = 1;
@@ -97,10 +148,35 @@ const Gamification = {
         }
         this.streak.lastDate = today;
 
+        // Trigger streak animations
+        if (wasIncremented) {
+            this.celebrateStreak();
+        }
+
         if (this.streak.current >= 7) {
             this.unlockAchievement('WEEK_WARRIOR');
         }
         this.save();
+    },
+
+    celebrateStreak() {
+        // Dispatch custom event for streak update
+        window.dispatchEvent(new CustomEvent('streakUpdate', {
+            detail: { streak: this.streak.current }
+        }));
+
+        // Play streak sound at milestones
+        if (this.streak.current % 7 === 0 && typeof SoundManager !== 'undefined') {
+            SoundManager.playStreak();
+        }
+
+        // Confetti at streak milestones
+        if (typeof confetti !== 'undefined') {
+            if (this.streak.current === 7 || this.streak.current === 14 ||
+                this.streak.current === 21 || this.streak.current === 30) {
+                confetti.streakBurst(window.innerWidth / 2, 100, this.streak.current);
+            }
+        }
     },
 
     unlockAchievement(key) {
