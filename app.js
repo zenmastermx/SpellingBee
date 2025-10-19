@@ -93,7 +93,24 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         getSampleWords() {
-            const sampleWords = ['accommodate', 'rhythm', 'conscience', 'embarrass', 'millennium', 'bureaucracy', 'surveillance', 'liaison', 'questionnaire', 'onomatopoeia', 'idiosyncrasy', 'phenomenon', 'ubiquitous', 'xylophone', 'zealous', 'yacht', 'unnecessary', 'succeed', 'privilege', 'occurrence'];
+            const sampleWords = [
+                'Greece', 'Vikings', 'achieve', 'adapt', 'advantage', 'advertisement', 'among', 'appearance', 'archeologists', 'ashamed',
+                'balance', 'behavior', 'belief', 'british', 'business', 'capable', 'career', 'century', 'certainly', 'challenge',
+                'committee', 'critically', 'define', 'deliver', 'device', 'different', 'disappear', 'discount', 'discussed', 'due',
+                'effect', 'effort', 'engineer', 'enough', 'essential', 'famous', 'fashion', 'fasten', 'feature', 'forgetting',
+                'freedom', 'garbage', 'gather', 'generous', 'government', 'guidebook', 'habit', 'handle', 'healthy', 'heritage',
+                'highway', 'history', 'huge', 'identify', 'illegal', 'improve', 'independent', 'indigenous', 'injuries', 'instead',
+                'interrupt', 'interviewed', 'irresponsible', 'issues', 'journey', 'judge', 'justice', 'keen', 'keyboard', 'kindness',
+                'knowledge', 'lake', 'language', 'lawyer', 'leak', 'length', 'liberty', 'literature', 'local', 'manage',
+                'measure', 'meeting', 'memory', 'method', 'minorities', 'mythology', 'narrative', 'necessary', 'notice', 'novel',
+                'nowadays', 'nurture', 'nutritious', 'parade', 'participate', 'patient', 'pattern', 'peaceful', 'pollute', 'possibility',
+                'poverty', 'proud', 'quality', 'quantity', 'quickly', 'quiet', 'quite', 'quote', 'racist', 'raise', 'react', 'reason',
+                'reasonable', 'recycle', 'refugees', 'resources', 'responsibility', 'science', 'season', 'seriously', 'sketch', 'slavery',
+                'statement', 'streaming', 'summarize', 'supposedly', 'survey', 'talent', 'theory', 'thoughts', 'trace', 'tradition',
+                'trust', 'understand', 'unfortunately', 'unique', 'until', 'update', 'useful', 'usually', 'vacancies', 'vacation',
+                'valuable', 'variety', 'veggies', 'village', 'virtue', 'warmth', 'wealth', 'weather', 'wisdom', 'wonder', 'xylophone',
+                'yawn', 'yet', 'yield', 'youth'
+            ];
             return sampleWords.map(word => SM2.createWord(word));
         },
 
