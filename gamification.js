@@ -30,7 +30,11 @@ const Gamification = {
         const today = this.getTodayDateString();
         if (this.currentDate !== today || !this.todayStats) {
             this.currentDate = today;
-            this.todayStats = Storage.get(`gamification_stats_${this.currentDate}`, { correct: 0, incorrect: 0 }) || { correct: 0, incorrect: 0 };
+            this.todayStats = Storage.get(`gamification_stats_${this.currentDate}`, { correct: 0, incorrect: 0, reviewedWords: [] }) || { correct: 0, incorrect: 0, reviewedWords: [] };
+        }
+        // Ensure reviewedWords array exists (for backwards compatibility)
+        if (!this.todayStats.reviewedWords) {
+            this.todayStats.reviewedWords = [];
         }
     },
 
@@ -95,7 +99,6 @@ const Gamification = {
 
     processAnswer(correct, quality, timeTaken, word) {
         this.ensureTodayStats();
-        this.updateTodayStats(correct);
         if (correct) {
             let points = 0;
             if (quality >= 5) points = this.POINTS_CONFIG.CORRECT_EASY;
@@ -106,19 +109,36 @@ const Gamification = {
             if (timeTaken < 5000) {
                 this.unlockAchievement('SPEED_DEMON');
             }
-            if (word.history.length > 0 && word.history[word.history.length - 1].correct === false) {
+            // Check for comeback achievement (need at least 2 history entries)
+            if (word.history && word.history.length >= 2 && word.history[word.history.length - 2].correct === false) {
                 this.unlockAchievement('COMEBACK_KID');
             }
-        } 
+        }
     },
 
-    updateTodayStats(correct) {
+    updateTodayStats(correct, wordId = null) {
+        this.ensureTodayStats();
         if (correct) {
             this.todayStats.correct++;
         } else {
             this.todayStats.incorrect++;
         }
+        // Track unique words reviewed today
+        if (wordId && !this.todayStats.reviewedWords.includes(wordId)) {
+            this.todayStats.reviewedWords.push(wordId);
+        }
         Storage.set(`gamification_stats_${this.getTodayDateString()}`, this.todayStats);
+    },
+
+    getReviewedTodayCount() {
+        this.ensureTodayStats();
+        return this.todayStats.reviewedWords ? this.todayStats.reviewedWords.length : 0;
+    },
+
+    getNewWordsTodayCount() {
+        const todayDateString = new Date().toISOString().split('T')[0];
+        const newWordsIntroducedToday = Storage.get(`new_words_${todayDateString}`, []);
+        return newWordsIntroducedToday.length;
     },
 
     getTodayAccuracy() {
@@ -135,12 +155,29 @@ const Gamification = {
         if (lastDate === today) return; // Already studied today
 
         const yesterday = this.getYesterdayDateString();
-        const wasIncremented = lastDate === yesterday;
+        let wasIncremented = false;
 
-        if (wasIncremented) {
+        if (lastDate === yesterday) {
+            // Continued streak from yesterday
+            wasIncremented = true;
             this.streak.current++;
-        } else {
+        } else if (lastDate === null || lastDate === undefined) {
+            // First time studying
             this.streak.current = 1;
+        } else {
+            // Check if we missed days - calculate days between
+            const lastDateObj = new Date(lastDate + 'T00:00:00');
+            const todayDateObj = new Date(today + 'T00:00:00');
+            const daysDifference = Math.floor((todayDateObj - lastDateObj) / (1000 * 60 * 60 * 24));
+
+            if (daysDifference === 1) {
+                // Continued streak
+                wasIncremented = true;
+                this.streak.current++;
+            } else {
+                // Streak broken, reset to 1
+                this.streak.current = 1;
+            }
         }
 
         if (this.streak.current > this.streak.longest) {

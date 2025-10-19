@@ -51,7 +51,7 @@ const SM2 = {
         today.setHours(0, 0, 0, 0);
 
         return {
-            id: Date.now().toString(),
+            id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             text: text,
             easeFactor: 2.5,
             repetitions: 0,

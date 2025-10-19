@@ -40,8 +40,9 @@
                 </div>
                 <div class="daily-goal">
                     <h3>Meta de Hoy</h3>
-                    <p><span id="completed-today-count">0</span> / <span id="daily-goal-count">20</span> palabras revisadas</p>
+                    <p><span id="new-words-today-count">0</span> / <span id="daily-goal-count">20</span> nuevas palabras</p>
                     <progress id="daily-goal-progress" value="0" max="20"></progress>
+                    <p class="secondary-stat">Palabras revisadas hoy: <span id="completed-today-count">0</span></p>
                 </div>
                 <button id="start-practice-btn" class="btn btn-primary">Comenzar Práctica</button>
                  <div class="calendar-heatmap">
@@ -69,12 +70,6 @@
                     <div id="translation-container" class="notranslate" style="display: none; margin-top: 1rem;">
                         <p>Traducción al Español: <strong id="translation-text"></strong></p>
                     </div>
-                    <div class="rating-buttons">
-                        <button class="btn btn-rating" data-quality="0">Otra vez</button>
-                        <button class="btn btn-rating" data-quality="1">Difícil</button>
-                        <button class="btn btn-rating" data-quality="4">Bien</button>
-                        <button class="btn btn-rating" data-quality="5">Fácil</button>
-                    </div>
                 </div>
             </section>
 
@@ -101,7 +96,7 @@
                 <h2>Configuración</h2>
                 <div class="setting">
                     <label for="speech-rate-slider">Velocidad de Voz:</label>
-                    <input type="range" id="speech-rate-slider" min="0.7" max="1.0" step="0.1" value="1.0">
+                    <input type="range" id="speech-rate-slider" min="0.7" max="2.0" step="0.1" value="1.0">
                     <span id="speech-rate-value">1.0</span>
                 </div>
                 <div class="setting">
@@ -170,10 +165,21 @@
     <div id="spelling-feedback-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span id="spelling-feedback-close-btn" class="close-btn" style="display: none;">&times;</span>
+            <div id="spelling-result-indicator" style="display: none;"></div>
+            <div id="user-spelling-display" class="user-spelling" style="display: none;"></div>
             <div id="spelling-feedback-word" class="spelled-word"></div>
+            <div id="modal-translation-container" class="modal-translation" style="display: none;">
+                <p><strong id="modal-translation-text"></strong></p>
+            </div>
             <button id="repeat-spelling-feedback-btn" class="btn-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
             </button>
+            <div class="rating-buttons" style="display: none;">
+                <button class="btn btn-rating" data-quality="0">Otra vez</button>
+                <button class="btn btn-rating" data-quality="1">Difícil</button>
+                <button class="btn btn-rating" data-quality="4">Bien</button>
+                <button class="btn btn-rating" data-quality="5">Fácil</button>
+            </div>
         </div>
     </div>
     

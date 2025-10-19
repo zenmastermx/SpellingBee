@@ -343,6 +343,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 1rem;
 }
 
 @keyframes letter-pulse {
@@ -367,10 +368,73 @@ body {
     animation: letter-pulse 0.4s ease-in-out;
 }
 
+#spelling-feedback-modal .rating-buttons {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .btn-rating {
+        padding: 0.75rem 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .rating-buttons {
+        gap: 0.5rem;
+    }
+}
+
+#spelling-result-indicator {
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+}
+
+#spelling-result-indicator.correct {
+    color: var(--correct-color);
+}
+
+#spelling-result-indicator.incorrect {
+    color: var(--incorrect-color);
+}
+
+.user-spelling {
+    font-size: 1.5rem;
+    color: var(--incorrect-color);
+    text-decoration: line-through;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+.modal-translation {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--background-light);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent-color);
+}
+
 .rating-buttons {
     margin-top: 1rem;
     display: flex;
-    justify-content: space-around;
+    gap: 0.75rem;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+}
+
+.btn-rating {
+    flex: 1;
+    min-width: 0;
+    padding: 0.875rem 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .bottom-nav {
@@ -686,6 +750,13 @@ body {
 .daily-goal p {
     color: var(--text-muted);
     margin: 0 0 0.75rem 0;
+}
+
+.daily-goal .secondary-stat {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    opacity: 0.8;
 }
 
 .daily-goal progress {

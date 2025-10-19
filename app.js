@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 masterQueue: [],
                 activeQueue: [],
                 relearningQueue: [],
+                newWordsIntroducedToday: [],
                 currentWord: null,
                 startTime: null,
                 correctStreak: 0,
@@ -132,7 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('spell-input').addEventListener('keyup', e => {
                 if (e.key === 'Enter') this.checkSpelling();
             });
-            document.querySelector('.rating-buttons').addEventListener('click', e => {
+            // Rating buttons in the modal
+            document.querySelector('#spelling-feedback-modal .rating-buttons').addEventListener('click', e => {
                 if (e.target.classList.contains('btn-rating')) {
                     const quality = parseInt(e.target.dataset.quality, 10);
                     this.rateWord(quality);
@@ -300,10 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update daily goal
             const dailyGoal = this.state.settings.dailyGoal;
-            const completedToday = 0; // This needs to be calculated from word history
+            const newWordsToday = Gamification.getNewWordsTodayCount();
+            const completedToday = Gamification.getReviewedTodayCount();
             document.getElementById('daily-goal-count').textContent = dailyGoal;
+            document.getElementById('new-words-today-count').textContent = newWordsToday;
             document.getElementById('completed-today-count').textContent = completedToday;
-            document.getElementById('daily-goal-progress').value = completedToday;
+            document.getElementById('daily-goal-progress').value = newWordsToday;
             document.getElementById('daily-goal-progress').max = dailyGoal;
         },
 
@@ -318,12 +322,29 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
+                const endOfToday = new Date(today);
+                endOfToday.setHours(23, 59, 59, 999);
 
-                const dueWords = this.state.words
-                    .filter(word => new Date(word.nextReview) <= today)
+                // Get words due for review (repetitions > 0) and new words (repetitions === 0)
+                const reviewWords = this.state.words
+                    .filter(word => {
+                        const nextReviewDate = new Date(word.nextReview);
+                        return word.repetitions > 0 && nextReviewDate <= endOfToday;
+                    })
                     .sort((a, b) => a.repetitions - b.repetitions || a.easeFactor - b.easeFactor);
 
-                if (dueWords.length === 0) {
+                const newWords = this.state.words
+                    .filter(word => {
+                        const nextReviewDate = new Date(word.nextReview);
+                        return word.repetitions === 0 && nextReviewDate <= endOfToday;
+                    })
+                    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+                // Get today's new words introduced count
+                const todayDateString = new Date().toISOString().split('T')[0];
+                const newWordsIntroducedToday = Storage.get(`new_words_${todayDateString}`, []);
+
+                if (reviewWords.length === 0 && newWords.length === 0) {
                     alert("¡No hay palabras para revisar hoy!");
                     if (btn) {
                         btn.classList.remove('loading');
@@ -332,12 +353,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                this.state.practiceSession.masterQueue = dueWords;
+                // Initialize session
+                this.state.practiceSession.masterQueue = newWords;
+                this.state.practiceSession.activeQueue = [...reviewWords]; // All review words go into active queue
                 this.state.practiceSession.relearningQueue = [];
+                this.state.practiceSession.newWordsIntroducedToday = newWordsIntroducedToday;
                 this.state.practiceSession.correctStreak = 0;
 
+                // Add initial new words up to daily goal if we haven't hit the limit
                 const dailyGoal = this.state.settings.dailyGoal || 20;
-                this.state.practiceSession.activeQueue = this.state.practiceSession.masterQueue.splice(0, dailyGoal);
+                const remainingNewWords = dailyGoal - newWordsIntroducedToday.length;
+                const newWordsToAdd = this.state.practiceSession.masterQueue.splice(0, Math.max(0, remainingNewWords));
+                this.state.practiceSession.activeQueue.push(...newWordsToAdd);
+
+                // Track new words introduced
+                newWordsToAdd.forEach(word => {
+                    if (!this.state.practiceSession.newWordsIntroducedToday.includes(word.id)) {
+                        this.state.practiceSession.newWordsIntroducedToday.push(word.id);
+                    }
+                });
 
                 this.nextWord();
                 this.navigateTo('practice-view');
@@ -437,32 +471,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedVoice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
             }
 
-            for (let i = 0; i < letters.length; i++) {
-                const letter = letters[i];
-                const letterSpan = document.getElementById(isModal ? `feedback-letter-${i}` : `letter-${i}`);
-                if (letterSpan) {
-                    letterSpan.classList.add('highlight');
-                }
+            // Create a single utterance with all letters separated by commas for faster pronunciation
+            const letterString = letters.join(', ');
+            const utterance = new SpeechSynthesisUtterance(letterString);
+            utterance.rate = this.state.settings.speechRate;
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                utterance.lang = selectedVoice.lang;
+            }
 
-                const utterance = new SpeechSynthesisUtterance(letter);
-                utterance.rate = this.state.settings.speechRate;
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                    utterance.lang = selectedVoice.lang;
+            utterance.onerror = (event) => {
+                console.error('SpeechSynthesisUtterance.onerror', event);
+            };
+
+            // Manually animate letters based on estimated timing
+            let currentIndex = 0;
+            // Adjusted timing: accounts for letter pronunciation + comma pause
+            // Base timing of ~400ms per letter+comma at normal speed, scales with speech rate
+            const letterDuration = 400 / this.state.settings.speechRate;
+
+            const animateLetters = setInterval(() => {
+                if (currentIndex < letters.length) {
+                    const letterSpan = document.getElementById(isModal ? `feedback-letter-${currentIndex}` : `letter-${currentIndex}`);
+                    if (letterSpan) {
+                        letterSpan.classList.add('highlight');
+                    }
+                    currentIndex++;
+                } else {
+                    clearInterval(animateLetters);
                 }
-                
-                utterance.onerror = (event) => {
-                    console.error('SpeechSynthesisUtterance.onerror', event);
+            }, letterDuration);
+
+            // Speak the entire string at once
+            await new Promise((resolve) => {
+                utterance.onend = () => {
+                    clearInterval(animateLetters);
+                    resolve();
                 };
                 speechSynthesis.speak(utterance);
-                
-                // Pause between letters
-                await new Promise(resolve => setTimeout(resolve, 800));
-            }
+            });
 
             if (isModal) {
                 document.getElementById('repeat-spelling-feedback-btn').style.display = 'inline-block';
                 document.getElementById('spelling-feedback-close-btn').style.display = 'block';
+                // Show rating buttons after spelling is complete
+                const ratingButtons = document.querySelector('#spelling-feedback-modal .rating-buttons');
+                if (ratingButtons) {
+                    ratingButtons.style.display = 'flex';
+                }
             }
         },
 
@@ -483,7 +539,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const wordEl = document.getElementById('spelling-feedback-word');
             const closeBtn = document.getElementById('spelling-feedback-close-btn');
             const repeatBtn = document.getElementById('repeat-spelling-feedback-btn');
+            const resultIndicator = document.getElementById('spelling-result-indicator');
+            const userSpellingDisplay = document.getElementById('user-spelling-display');
+            const modalTranslationContainer = document.getElementById('modal-translation-container');
+            const modalTranslationText = document.getElementById('modal-translation-text');
 
+            // Show result indicator (checkmark or X)
+            resultIndicator.textContent = isCorrect ? '✓' : '✗';
+            resultIndicator.className = isCorrect ? 'correct' : 'incorrect';
+            resultIndicator.style.display = 'block';
+
+            // Show user's spelling if incorrect
+            if (!isCorrect && userInput) {
+                userSpellingDisplay.textContent = userInput;
+                userSpellingDisplay.style.display = 'block';
+            } else {
+                userSpellingDisplay.style.display = 'none';
+            }
+
+            // Prepare word display
             wordEl.innerHTML = '';
             correctSpelling.split('').forEach((letter, index) => {
                 const span = document.createElement('span');
@@ -492,8 +566,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 wordEl.appendChild(span);
             });
 
+            // Get and display translation
+            const translation = await this.getTranslation(correctSpelling, 'es');
+            if (translation) {
+                modalTranslationText.textContent = translation;
+                modalTranslationContainer.style.display = 'block';
+                // Also update the practice view translation
+                document.getElementById('translation-text').textContent = translation;
+                document.getElementById('translation-container').style.display = 'block';
+            } else {
+                modalTranslationContainer.style.display = 'none';
+            }
+
             closeBtn.style.display = 'none';
             repeatBtn.style.display = 'none';
+            // Hide rating buttons initially
+            const ratingButtons = document.querySelector('#spelling-feedback-modal .rating-buttons');
+            if (ratingButtons) {
+                ratingButtons.style.display = 'none';
+            }
             modal.style.display = 'flex';
 
             await this.speakWordLetterByLetter(true);
@@ -533,21 +624,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 this.state.practiceSession.correctStreak = 0;
             }
-
-            const translation = await this.getTranslation(correctSpelling, 'es');
-            if (translation) {
-                document.getElementById('translation-text').textContent = translation;
-                document.getElementById('translation-container').style.display = 'block';
-            }
         },
 
         rateWord(quality) {
+            // Close the spelling feedback modal
+            const modal = document.getElementById('spelling-feedback-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+
             const word = this.state.practiceSession.currentWord;
             const wasSpelledCorrectly = this.state.practiceSession.lastAnswerCorrect;
 
             // Calculate XP before processing
             const oldPoints = Gamification.points;
             Gamification.processAnswer(wasSpelledCorrectly, quality, Date.now() - this.state.practiceSession.startTime, word);
+            Gamification.updateTodayStats(wasSpelledCorrectly, word.id);
             const earnedXP = Gamification.points - oldPoints;
 
             // Show floating XP if points were earned
@@ -563,6 +655,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => xpBar.classList.remove('xp-gaining'), 600);
             }
 
+            // Add to word history
+            const historyEntry = {
+                date: new Date().toISOString(),
+                correct: wasSpelledCorrectly,
+                quality: quality,
+                timeTaken: Date.now() - this.state.practiceSession.startTime
+            };
+            if (!word.history) {
+                word.history = [];
+            }
+            word.history.push(historyEntry);
+
             // If the user spelled it wrong, we force a low quality score for the SM-2 algorithm.
             const sm2Quality = wasSpelledCorrectly ? quality : 0;
             const updatedWord = SM2.calculate(sm2Quality, word);
@@ -572,13 +676,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.saveWords();
             }
 
+            // Check for master mind achievement after SM-2 update
+            if (wasSpelledCorrectly && updatedWord.interval > 21) {
+                if (Gamification.unlockAchievement('MASTER_MIND')) {
+                    if (typeof ToastManager !== 'undefined') {
+                        ToastManager.show('¡Logro Desbloqueado!', 'Mente Maestra - ¡Dominaste tu primera palabra!', '🏆');
+                    }
+                }
+            }
+
             // Session logic: if spelled wrong, relearn it now.
             if (!wasSpelledCorrectly) {
-                this.state.practiceSession.relearningQueue.push(word);
+                this.state.practiceSession.relearningQueue.push(updatedWord);
             } else {
-                // Spelled correctly, so we can introduce a new word from the master queue.
-                if (this.state.practiceSession.masterQueue.length > 0) {
-                    this.state.practiceSession.activeQueue.push(this.state.practiceSession.masterQueue.shift());
+                // Spelled correctly, check if we can introduce a new word
+                const dailyGoal = this.state.settings.dailyGoal || 20;
+                const canIntroduceNewWord = this.state.practiceSession.newWordsIntroducedToday.length < dailyGoal
+                    && this.state.practiceSession.masterQueue.length > 0;
+
+                if (canIntroduceNewWord) {
+                    const newWord = this.state.practiceSession.masterQueue.shift();
+                    this.state.practiceSession.activeQueue.push(newWord);
+                    this.state.practiceSession.newWordsIntroducedToday.push(newWord.id);
+                    // Save new words introduced today
+                    const todayDateString = new Date().toISOString().split('T')[0];
+                    Storage.set(`new_words_${todayDateString}`, this.state.practiceSession.newWordsIntroducedToday);
                 }
             }
 
@@ -914,7 +1036,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 Storage.remove('gamification_level');
                 Storage.remove('gamification_achievements');
                 Storage.remove('gamification_streak');
-                // Also need to remove daily stats
+
+                // Remove all daily stats and new words tracking for the past 90 days
+                const today = new Date();
+                for (let i = 0; i < 90; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    const dateString = date.toISOString().split('T')[0];
+                    Storage.remove(`gamification_stats_${dateString}`);
+                    Storage.remove(`new_words_${dateString}`);
+                }
 
                 // Re-initialize the app state
                 this.loadData();
