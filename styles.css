@@ -273,6 +273,13 @@ body {
     border-radius: 2px;
 }
 
+.version-info {
+    margin-top: 2rem;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.8rem;
+}
+
 /* Desktop view */
 @media (min-width: 768px) {
     #app-container {

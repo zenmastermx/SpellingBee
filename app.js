@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const App = {
+        VERSION: '1.0.0',
         state: {
             words: [],
             settings: {},
@@ -136,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         render() {
+            document.getElementById('app-version').textContent = this.VERSION;
             this.renderWordList();
             this.renderAchievements();
             this.renderCalendarHeatmap();
