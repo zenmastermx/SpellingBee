@@ -10,12 +10,12 @@ const Gamification = {
     LEVEL_XP: 500, // XP needed to level up
 
     ACHIEVEMENTS: {
-        PERFECT_SPELLER: { name: "Perfect Speller", description: "Get 10 correct answers in a row", icon: "🎯", unlocked: false },
-        WEEK_WARRIOR: { name: "Week Warrior", description: "Maintain a 7-day study streak", icon: "⚔️", unlocked: false },
-        SPEED_DEMON: { name: "Speed Demon", description: "Answer a word correctly in under 5 seconds", icon: "⚡", unlocked: false },
-        COMEBACK_KID: { name: "Comeback Kid", description: "Get a word right after getting it wrong", icon: "💪", unlocked: false },
-        WORD_SMITH: { name: "Word Smith", description: "Add your first custom word", icon: "📝", unlocked: false },
-        MASTER_MIND: { name: "Master Mind", description: "Master your first word (interval > 21 days)", icon: "🧠", unlocked: false },
+        PERFECT_SPELLER: { name: "Deletreador Perfecto", description: "Obtén 10 respuestas correctas seguidas", icon: "🎯", unlocked: false },
+        WEEK_WARRIOR: { name: "Guerrero Semanal", description: "Mantén una racha de estudio de 7 días", icon: "⚔️", unlocked: false },
+        SPEED_DEMON: { name: "Demonio de la Velocidad", description: "Responde una palabra correctamente en menos de 5 segundos", icon: "⚡", unlocked: false },
+        COMEBACK_KID: { name: "El Retorno", description: "Responde bien una palabra después de haberla respondido mal", icon: "💪", unlocked: false },
+        WORD_SMITH: { name: "Forjador de Palabras", description: "Agrega tu primera palabra personalizada", icon: "📝", unlocked: false },
+        MASTER_MIND: { name: "Mente Maestra", description: "Domina tu primera palabra (intervalo > 21 días)", icon: "🧠", unlocked: false },
     },
 
     init() {
@@ -78,9 +78,9 @@ const Gamification = {
         modal.className = 'level-up-modal';
         modal.innerHTML = `
             <div class="level-up-content">
-                <h2>🎉 LEVEL UP! 🎉</h2>
-                <p>You're now Level ${this.level}!</p>
-                <button class="btn btn-primary" onclick="this.closest('.level-up-modal').remove()">Awesome!</button>
+                <h2>🎉 ¡SUBISTE DE NIVEL! 🎉</h2>
+                <p>¡Ahora eres Nivel ${this.level}!</p>
+                <button class="btn btn-primary" onclick="this.closest('.level-up-modal').remove()">¡Genial!</button>
             </div>
         `;
         document.body.appendChild(modal);

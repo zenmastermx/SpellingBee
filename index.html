@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spelling Bee Practice</title>
+    <title>Práctica de Deletreo</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#795548">
@@ -11,11 +11,11 @@
 <body class="notranslate">
     <div id="app-container">
         <header class="app-header">
-            <h1>Spelling Bee Practice</h1>
+            <h1>Práctica de Deletreo</h1>
             <div class="gamification-header">
-                <span id="level-display">Level 1</span>
+                <span id="level-display">Nivel 1</span>
                 <progress id="xp-bar" value="0" max="500"></progress>
-                <span id="points-display">0 Points</span>
+                <span id="points-display">0 Puntos</span>
                 <span id="streak-display">🔥 0</span>
             </div>
         </header>
@@ -23,29 +23,29 @@
         <main id="main-content">
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view active">
-                <h2>Dashboard</h2>
+                <h2>Panel de Control</h2>
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <h3>Words Mastered</h3>
+                        <h3>Palabras Dominadas</h3>
                         <p id="mastered-words-count">0</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Today's Accuracy</h3>
+                        <h3>Precisión de Hoy</h3>
                         <p id="today-accuracy">--%</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Longest Streak</h3>
-                        <p id="longest-streak-count">0 days</p>
+                        <h3>Racha Más Larga</h3>
+                        <p id="longest-streak-count">0 días</p>
                     </div>
                 </div>
                 <div class="daily-goal">
-                    <h3>Today's Goal</h3>
-                    <p><span id="completed-today-count">0</span> / <span id="daily-goal-count">20</span> words reviewed</p>
+                    <h3>Meta de Hoy</h3>
+                    <p><span id="completed-today-count">0</span> / <span id="daily-goal-count">20</span> palabras revisadas</p>
                     <progress id="daily-goal-progress" value="0" max="20"></progress>
                 </div>
-                <button id="start-practice-btn" class="btn btn-primary">Start Practice</button>
+                <button id="start-practice-btn" class="btn btn-primary">Comenzar Práctica</button>
                  <div class="calendar-heatmap">
-                    <h3>Study Activity (Last 30 Days)</h3>
+                    <h3>Actividad de Estudio (Últimos 30 Días)</h3>
                     <div id="heatmap-container"></div>
                 </div>
             </section>
@@ -53,71 +53,71 @@
             <!-- Practice View -->
             <section id="practice-view" class="view">
                 <div class="practice-header">
-                     <p>Words remaining: <span id="words-remaining-count">0</span></p>
+                     <p>Palabras restantes: <span id="words-remaining-count">0</span></p>
                 </div>
                 <div class="card">
                     <div class="card-content">
                         <button id="play-word-btn" class="btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
                         <div id="sentence-display" class="sentence"></div>
-                        <input type="text" id="spell-input" placeholder="Type the word..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="en">
-                        <button id="submit-spell-btn" class="btn">Submit</button>
+                        <input type="text" id="spell-input" placeholder="Escribe la palabra..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="en">
+                        <button id="submit-spell-btn" class="btn">Enviar</button>
                     </div>
                 </div>
                 <div id="feedback-container" style="display: none;">
                     <h2 id="feedback-text"></h2>
                     <div id="diff-container"></div>
                     <div id="translation-container" class="notranslate" style="display: none; margin-top: 1rem;">
-                        <p>Spanish Translation: <strong id="translation-text"></strong></p>
+                        <p>Traducción al Español: <strong id="translation-text"></strong></p>
                     </div>
                     <div class="rating-buttons">
-                        <button class="btn btn-rating" data-quality="0">Again</button>
-                        <button class="btn btn-rating" data-quality="1">Hard</button>
-                        <button class="btn btn-rating" data-quality="4">Good</button>
-                        <button class="btn btn-rating" data-quality="5">Easy</button>
+                        <button class="btn btn-rating" data-quality="0">Otra vez</button>
+                        <button class="btn btn-rating" data-quality="1">Difícil</button>
+                        <button class="btn btn-rating" data-quality="4">Bien</button>
+                        <button class="btn btn-rating" data-quality="5">Fácil</button>
                     </div>
                 </div>
             </section>
 
             <!-- Word List View -->
             <section id="word-list-view" class="view">
-                <h2>Word List</h2>
+                <h2>Lista de Palabras</h2>
                 <div class="word-list-controls">
-                    <button id="add-word-btn" class="btn">Add Word</button>
-                    <button id="import-words-btn" class="btn">Import</button>
-                    <button id="export-data-btn" class="btn">Export</button>
-                    <button id="delete-all-words-btn" class="btn btn-danger">Delete All</button>
+                    <button id="add-word-btn" class="btn">Agregar Palabra</button>
+                    <button id="import-words-btn" class="btn">Importar</button>
+                    <button id="export-data-btn" class="btn">Exportar</button>
+                    <button id="delete-all-words-btn" class="btn btn-danger">Eliminar Todo</button>
                 </div>
                 <div id="word-list-container"></div>
             </section>
 
             <!-- Achievements View -->
             <section id="achievements-view" class="view">
-                <h2>Achievements</h2>
+                <h2>Logros</h2>
                 <div id="achievements-container"></div>
             </section>
 
             <!-- Settings View -->
             <section id="settings-view" class="view">
-                <h2>Settings</h2>
+                <h2>Configuración</h2>
                 <div class="setting">
-                    <label for="speech-rate-slider">Speech Rate:</label>
+                    <label for="speech-rate-slider">Velocidad de Voz:</label>
                     <input type="range" id="speech-rate-slider" min="0.7" max="1.0" step="0.1" value="1.0">
                     <span id="speech-rate-value">1.0</span>
                 </div>
                 <div class="setting">
-                    <label for="voice-select">Voice:</label>
+                    <label for="voice-select">Voz:</label>
                     <select id="voice-select"></select>
                 </div>
                  <div class="setting">
-                    <label for="daily-goal-input">Daily Goal:</label>
+                    <label for="daily-goal-input">Meta Diaria:</label>
                     <input type="number" id="daily-goal-input" min="1" value="20">
                 </div>
                 <div class="setting">
-                    <label for="sound-toggle">Sound Effects:</label>
+                    <label for="sound-toggle">Efectos de Sonido:</label>
                     <input type="checkbox" id="sound-toggle" checked>
                 </div>
                  <div class="setting">
-                    <label for="theme-toggle">Dark Mode:</label>
+                    <label for="theme-toggle">Modo Oscuro:</label>
                     <label class="theme-switch">
                         <input type="checkbox" id="theme-toggle">
                         <span class="slider">
@@ -126,20 +126,20 @@
                         </span>
                     </label>
                 </div>
-                <button id="reset-progress-btn" class="btn btn-danger">Reset All Progress</button>
+                <button id="reset-progress-btn" class="btn btn-danger">Restablecer Todo el Progreso</button>
 
                 <div class="version-info">
-                    <p>Version: <span id="app-version"></span></p>
+                    <p>Versión: <span id="app-version"></span></p>
                 </div>
             </section>
         </main>
 
         <nav class="bottom-nav">
-            <button data-view="dashboard-view" class="nav-btn active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><br>Dashboard</button>
-            <button data-view="practice-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path></svg><br>Practice</button>
-            <button data-view="word-list-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><br>Words</button>
-            <button data-view="achievements-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V-2"></path><path d="M12 22v-6"></path><path d="M12 6l-4 4h8l-4-4z"></path><path d="M20 12l-4 4v-8l4 4z"></path><path d="M4 12l4 4v-8l-4 4z"></path></svg><br>Achievements</button>
-            <button data-view="settings-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V12a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><br>Settings</button>
+            <button data-view="dashboard-view" class="nav-btn active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><br>Panel</button>
+            <button data-view="practice-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path></svg><br>Práctica</button>
+            <button data-view="word-list-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><br>Palabras</button>
+            <button data-view="achievements-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V-2"></path><path d="M12 22v-6"></path><path d="M12 6l-4 4h8l-4-4z"></path><path d="M20 12l-4 4v-8l4 4z"></path><path d="M4 12l4 4v-8l-4 4z"></path></svg><br>Logros</button>
+            <button data-view="settings-view" class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V12a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><br>Configuración</button>
         </nav>
     </div>
 
@@ -147,9 +147,9 @@
     <div id="word-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h3 id="word-modal-title">Add Word</h3>
-            <input type="text" id="word-input" placeholder="Word">
-            <button id="save-word-btn" class="btn">Save</button>
+            <h3 id="word-modal-title">Agregar Palabra</h3>
+            <input type="text" id="word-input" placeholder="Palabra">
+            <button id="save-word-btn" class="btn">Guardar</button>
         </div>
     </div>
 
@@ -157,11 +157,11 @@
     <div id="import-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h3>Import Words</h3>
-            <p>Enter one word per line.</p>
+            <h3>Importar Palabras</h3>
+            <p>Ingrese una palabra por línea.</p>
             <textarea id="import-textarea" rows="10"></textarea>
-            <button id="save-import-btn" class="btn">Import</button>
-            <p>Or upload a JSON file:</p>
+            <button id="save-import-btn" class="btn">Importar</button>
+            <p>O sube un archivo JSON:</p>
             <input type="file" id="import-file-input" accept=".json">
         </div>
     </div>
@@ -172,17 +172,6 @@
             <span id="spelling-feedback-close-btn" class="close-btn" style="display: none;">&times;</span>
             <div id="spelling-feedback-word" class="spelled-word"></div>
             <button id="repeat-spelling-feedback-btn" class="btn-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Spelling Feedback Modal -->
-    <div id="spelling-feedback-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span id="spelling-feedback-close-btn" class="close-btn" style="display: none;">&times;</span>
-            <div id="spelling-feedback-word" class="spelled-word"></div>
-            <button id="repeat-spelling-feedback-btn" class="btn-icon" style="display: none;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
             </button>
         </div>

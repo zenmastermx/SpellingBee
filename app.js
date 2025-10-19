@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         init() {
             if (!('speechSynthesis' in window)) {
-                alert("Sorry, your browser doesn't support text-to-speech. The core feature of this app will not work.");
+                alert("Lo sentimos, tu navegador no soporta texto a voz. La función principal de esta aplicación no funcionará.");
                 document.getElementById('play-word-btn').disabled = true;
             }
 
@@ -252,13 +252,13 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDashboard() {
             // Update level display
             const levelDisplay = document.getElementById('level-display');
-            const newLevelText = `Level ${Gamification.level}`;
+            const newLevelText = `Nivel ${Gamification.level}`;
             if (levelDisplay.textContent !== newLevelText) {
                 levelDisplay.textContent = newLevelText;
             }
 
             // Update points display
-            document.getElementById('points-display').textContent = `${Gamification.points} Points`;
+            document.getElementById('points-display').textContent = `${Gamification.points} Puntos`;
 
             // Update XP bar
             const xpForLevel = (Gamification.level - 1) * Gamification.LEVEL_XP;
@@ -285,14 +285,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         UIUtils.triggerAnimation(statCard, 'stat-increase', 800);
                     }
                     UIUtils.animateNumber(longestStreakEl, oldStreak, newStreak);
-                    // Add " days" after animation completes
+                    // Add " días" after animation completes
                     setTimeout(() => {
-                        longestStreakEl.textContent = `${newStreak} days`;
+                        longestStreakEl.textContent = `${newStreak} días`;
                     }, 820);
                 }
             } else {
                 document.getElementById('mastered-words-count').textContent = mastered;
-                document.getElementById('longest-streak-count').textContent = `${Gamification.streak.longest} days`;
+                document.getElementById('longest-streak-count').textContent = `${Gamification.streak.longest} días`;
             }
 
             // Update today's accuracy
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .sort((a, b) => a.repetitions - b.repetitions || a.easeFactor - b.easeFactor);
 
                 if (dueWords.length === 0) {
-                    alert("No words due for review today!");
+                    alert("¡No hay palabras para revisar hoy!");
                     if (btn) {
                         btn.classList.remove('loading');
                         btn.disabled = false;
@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('words-remaining-count').textContent = remaining;
                 this.speakWord();
             } else {
-                alert("Practice session complete!");
+                alert("¡Sesión de práctica completada!");
                 Gamification.updateStreak();
                 this.navigateTo('dashboard-view');
                 this.updateDashboard();
@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.state.practiceSession.lastAnswerCorrect = isCorrect;
             const spellInput = document.getElementById('spell-input');
 
-            document.getElementById('feedback-text').textContent = isCorrect ? 'Correct!' : 'Incorrect!';
+            document.getElementById('feedback-text').textContent = isCorrect ? '¡Correcto!' : '¡Incorrecto!';
             this.renderDiff(userInput, correctSpelling);
             document.getElementById('feedback-container').style.display = 'block';
             document.getElementById('spell-input').disabled = true;
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Check for perfect speller achievement
                 if (this.state.practiceSession.correctStreak >= 10) {
                     if(Gamification.unlockAchievement('PERFECT_SPELLER')) {
-                        ToastManager.show('Achievement Unlocked!', 'Perfect Speller - 10 correct in a row!', '🏆');
+                        ToastManager.show('¡Logro Desbloqueado!', 'Deletreador Perfecto - ¡10 correctas seguidas!', '🏆');
                     }
                 }
             } else {
@@ -655,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.addEventListener('mouseenter', (e) => {
                         const tooltip = document.createElement('div');
                         tooltip.className = 'heatmap-tooltip';
-                        tooltip.textContent = `${dayData.correct} correct, ${dayData.incorrect} wrong`;
+                        tooltip.textContent = `${dayData.correct} correctas, ${dayData.incorrect} incorrectas`;
                         tooltip.style.left = `${e.pageX}px`;
                         tooltip.style.top = `${e.pageY - 40}px`;
                         document.body.appendChild(tooltip);
@@ -673,7 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.addEventListener('mouseenter', (e) => {
                         const tooltip = document.createElement('div');
                         tooltip.className = 'heatmap-tooltip';
-                        tooltip.textContent = 'No activity';
+                        tooltip.textContent = 'Sin actividad';
                         tooltip.style.left = `${e.pageX}px`;
                         tooltip.style.top = `${e.pageY - 40}px`;
                         document.body.appendChild(tooltip);
@@ -719,11 +719,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wordId) {
                 this.state.editingWordId = wordId;
                 const word = this.state.words.find(w => w.id === wordId);
-                title.textContent = 'Edit Word';
+                title.textContent = 'Editar Palabra';
                 input.value = word.text;
             } else {
                 this.state.editingWordId = null;
-                title.textContent = 'Add Word';
+                title.textContent = 'Agregar Palabra';
                 input.value = '';
             }
             modal.style.display = 'flex';
@@ -746,14 +746,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.state.words.push(newWord);
                     if(Gamification.unlockAchievement('WORD_SMITH')) {
                         if (typeof ToastManager !== 'undefined') {
-                            ToastManager.show('Achievement Unlocked!', 'Word Smith - Added your first custom word!', '🏆');
+                            ToastManager.show('¡Logro Desbloqueado!', 'Forjador de Palabras - ¡Agregaste tu primera palabra personalizada!', '🏆');
                         }
                     }
                 } else {
                     if (typeof ToastManager !== 'undefined') {
-                        ToastManager.show('Oops!', 'This word already exists in your list.', '⚠️');
+                        ToastManager.show('¡Ups!', 'Esta palabra ya existe en tu lista.', '⚠️');
                     } else {
-                        alert('Word already exists!');
+                        alert('¡La palabra ya existe!');
                     }
                     return;
                 }
@@ -764,7 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         deleteWord(wordId) {
-            if (confirm('Are you sure you want to delete this word?')) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta palabra?')) {
                 this.state.words = this.state.words.filter(w => w.id !== wordId);
                 this.saveWords();
                 this.renderWordList();
@@ -772,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         deleteAllWords() {
-            if (confirm('Are you sure you want to delete ALL words? This cannot be undone.')) {
+            if (confirm('¿Estás seguro de que quieres eliminar TODAS las palabras? Esto no se puede deshacer.')) {
                 this.state.words = [];
                 this.saveWords();
                 this.renderWordList();
@@ -826,10 +826,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.applySettings();
                     this.render();
                     this.updateDashboard();
-                    alert('Data imported successfully!');
+                    alert('¡Datos importados exitosamente!');
                 } catch (err) {
                     console.error(err);
-                    alert('Invalid JSON file.');
+                    alert('Archivo JSON inválido.');
                 }
             };
             reader.readAsText(file);
@@ -907,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         resetProgress() {
-            if (confirm('Are you sure you want to reset all your progress? This cannot be undone.')) {
+            if (confirm('¿Estás seguro de que quieres restablecer todo tu progreso? Esto no se puede deshacer.')) {
                 Storage.remove('words');
                 Storage.remove('settings');
                 Storage.remove('gamification_points');
@@ -915,14 +915,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 Storage.remove('gamification_achievements');
                 Storage.remove('gamification_streak');
                 // Also need to remove daily stats
-                
+
                 // Re-initialize the app state
                 this.loadData();
                 Gamification.init();
                 this.applySettings();
                 this.render();
                 this.updateDashboard();
-                alert('Progress has been reset.');
+                alert('El progreso ha sido restablecido.');
             }
         },
 
